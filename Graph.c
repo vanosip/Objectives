@@ -625,12 +625,133 @@ void printPath(struct EdgeNode *path)
     printf("\n");
 }
 
+int findMinCap(struct EdgeNode* path){
+    if(!path) return 0;
+    int min = 32000;
+    struct EdgeNode* current = path;
+
+    while(current){
+        if(current->edge->weight < min){
+            min = current->edge->weight;
+        }
+        current = current->next;
+    }
+    return min;
+}
+void addReverseEdge(struct Graph* graph, Vertex* from, Vertex* to, int weight) {
+    // Проверяем, существует ли уже обратное ребро
+    struct EdgeNode* eNode = from->outEdge;
+    while (eNode) {
+        if (eNode->edge->to == to) {
+            eNode->edge->weight += weight;
+            return;
+        }
+        eNode = eNode->next;
+    }
+    
+    // Если не существует, создаем новое
+    Edge* reverseEdge = makeEdge(from, to, weight);
+    
+    // Добавляем в граф
+    struct EdgeNode* newEdgeNode = malloc(sizeof(struct EdgeNode));
+    newEdgeNode->edge = reverseEdge;
+    newEdgeNode->next = graph->allEdge;
+    graph->allEdge = newEdgeNode;
+    
+    // Добавляем в исходящие ребра
+    newEdgeNode = malloc(sizeof(struct EdgeNode));
+    newEdgeNode->edge = reverseEdge;
+    newEdgeNode->next = from->outEdge;
+    from->outEdge = newEdgeNode;
+    
+    // Добавляем во входящие ребра
+    newEdgeNode = malloc(sizeof(struct EdgeNode));
+    newEdgeNode->edge = reverseEdge;
+    newEdgeNode->next = to->inputEdge;
+    to->inputEdge = newEdgeNode;
+}
+
+void removeEdgeFromGraph(struct Graph* graph, Edge* edge){
+    removeEdgeFromEdgeNode(&graph->allEdge,edge);
+    removeEdgeFromEdgeNode(&edge->from->outEdge,edge);
+    removeEdgeFromEdgeNode(&edge->to->inputEdge,edge);
+    free(edge);
+}
+
+void updateEdgeCloneGraph(struct Graph* graph,struct EdgeNode* path,int flow){
+    struct EdgeNode* current = path;
+
+    while(current){
+        Edge* edge = current->edge;
+        Vertex* fromVertex = edge->from;
+        Vertex* toVertex = edge->to;
+
+        edge->weight-=flow;
+        if(edge->weight <= 0){
+            removeEdgeFromGraph(graph,edge);
+        }
+
+        addReverseEdge(graph,toVertex,fromVertex,flow);
+        
+        current = current->next;
+    }
+}
+void freePath(struct EdgeNode* path){
+    while(path){
+        struct EdgeNode* current = path;
+        path = path->next;
+        free(current);
+    }
+}
+
+void freeGraph(struct Graph* graph) {
+    if (!graph) return;
+    
+    // Освобождаем все ребра
+    struct EdgeNode* eNode = graph->allEdge;
+    while (eNode) {
+        struct EdgeNode* temp = eNode;
+        eNode = eNode->next;
+        free(temp->edge);
+        free(temp);
+    }
+    
+    // Освобождаем все вершины
+    struct VertexNode* vNode = graph->allVertex;
+    while (vNode) {
+        struct VertexNode* temp = vNode;
+        vNode = vNode->next;
+        
+        // Освобождаем списки рёбер вершины
+        struct EdgeNode* in = temp->vertex->inputEdge;
+        while (in) {
+            struct EdgeNode* tempIn = in;
+            in = in->next;
+            free(tempIn);
+        }
+        
+        struct EdgeNode* out = temp->vertex->outEdge;
+        while (out) {
+            struct EdgeNode* tempOut = out;
+            out = out->next;
+            free(tempOut);
+        }
+        
+        free(temp->vertex);
+        free(temp);
+    }
+    
+    free(graph);
+}
+
+
 void maxFlow(struct Graph *graph, char startID, char endID)
 {
     struct Graph *clone = cloneGraph(graph);
     struct VertexNode *now = clone->allVertex;
     Vertex *vertexStart = NULL;
     Vertex *vertexEnd = NULL;
+    int maxFlow = 0;
     while (now)
     {
         if (now->vertex->ID == startID)
@@ -640,5 +761,16 @@ void maxFlow(struct Graph *graph, char startID, char endID)
         now = now->next;
     }
 
-    printPath(findPath(clone, vertexStart, vertexEnd));
+    struct EdgeNode* path;
+    while((path = findPath(clone,vertexStart,vertexEnd))!=NULL){
+        int flow = findMinCap(path);
+        updateEdgeCloneGraph(clone,path,flow);
+
+        maxFlow+=flow;
+        freePath(path);
+    }
+
+    // printPath(findPath(clone, vertexStart, vertexEnd));
+    printf("Max flow = %d\n",maxFlow);
+    freeGraph(clone);
 }
