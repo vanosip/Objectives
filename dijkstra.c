@@ -1,5 +1,5 @@
 #include "Graph.h"
-
+/*Алгоритм Дейкстра поиск кратчайшего пути от заданной фершины*/
 void DIJKSTRA(struct Graph *graph, char startID)
 {
     bool visited[256] = {false};

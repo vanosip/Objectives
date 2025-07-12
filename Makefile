@@ -1,4 +1,4 @@
-final:
-	gcc main.c Graph.c dijkstra.c -o final
+build:
+	gcc main.c Graph.c dijkstra.c MaxFlow.c -o final
 clean:
-	rm *.o final
+	rm -f final *.o
