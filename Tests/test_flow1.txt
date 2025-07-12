@@ -1,0 +1,11 @@
+NODE A  
+NODE B  
+NODE C  
+NODE D  
+NODE G  
+EDGE A B 3  
+EDGE A C 2  
+EDGE B D 4  
+EDGE C D 1  
+EDGE D G 5  
+MAX FLOW A G

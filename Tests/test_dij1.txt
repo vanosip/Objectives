@@ -1,0 +1,9 @@
+NODE A  
+NODE B  
+NODE C  
+NODE D  
+EDGE A B 5  
+EDGE A C 10  
+EDGE B D 3  
+EDGE C D 1  
+DIJKSTRA A
