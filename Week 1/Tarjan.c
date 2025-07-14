@@ -35,9 +35,9 @@ void DFSTarjan(Vertex *current, int *index, struct VertexNode **stack, int *lowI
     }
     if (lowIndex[current->ID] == index[current->ID])
     {
-        char componentVertex[256] = {0};
+        char componentVertex[512] = {0};
         int componentCount = 0;
-        Vertex *w;
+        Vertex *w = NULL;
         struct VertexNode *node;
         while (w != current)
         {
@@ -45,6 +45,11 @@ void DFSTarjan(Vertex *current, int *index, struct VertexNode **stack, int *lowI
             *stack = node->next;
             w = node->vertex;
             inStack[w->ID] = false;
+
+            if (componentCount > 0)
+            {
+                componentVertex[componentCount++] = ' ';
+            }
             componentVertex[componentCount++] = w->ID;
             free(node);
         }

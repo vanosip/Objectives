@@ -1,0 +1,12 @@
+NODE A  
+NODE B  
+NODE C  
+NODE D  
+NODE E  
+EDGE A B 3  
+EDGE B C 2  
+EDGE C A 1  
+EDGE C D 4  
+EDGE D E 5  
+EDGE E D 6  
+TARJAN A  
