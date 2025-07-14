@@ -4,6 +4,7 @@
         "edge.h": "c",
         "cstdlib": "c",
         "stdbool.h": "c",
-        "dijkstra.C": "cpp"
+        "dijkstra.C": "cpp",
+        "graph.h": "c"
     }
 }

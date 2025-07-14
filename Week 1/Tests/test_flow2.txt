@@ -1,0 +1,22 @@
+NODE A  
+NODE B  
+NODE C  
+NODE D  
+NODE E  
+NODE F  
+NODE G  
+NODE H  
+NODE I  
+NODE J  
+EDGE A B 4  
+EDGE A C 3  
+EDGE B D 5  
+EDGE B E 2  
+EDGE C F 3  
+EDGE D G 6  
+EDGE E H 4  
+EDGE F H 2  
+EDGE G J 5  
+EDGE H J 3  
+EDGE I J 2  
+MAX FLOW A J

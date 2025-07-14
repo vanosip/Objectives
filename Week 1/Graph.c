@@ -1,5 +1,5 @@
 #include "Graph.h"
-
+/*Функция создаёт вершину по заданному ID */
 Vertex *makeVertex(char id)
 {
     Vertex *vertex = malloc(sizeof(Vertex));
@@ -8,6 +8,9 @@ Vertex *makeVertex(char id)
     vertex->outEdge = NULL;
     return vertex;
 }
+/*Функция создаёт новое ребро
+vertexFirst - вершина от куда
+vertexSecond - вершина приемник*/
 Edge *makeEdge(Vertex *vertexFirst, Vertex *vertexSecond, int weight)
 {
     Edge *edge = malloc(sizeof(Edge));
@@ -16,7 +19,9 @@ Edge *makeEdge(Vertex *vertexFirst, Vertex *vertexSecond, int weight)
     edge->weight = weight;
     return edge;
 }
-
+/*Функция удаляет ребро из спика рёбер
+node - список откуда следует удалить ребро
+toRemove - ребро которое следует удалить*/
 void removeEdgeFromEdgeNode(struct EdgeNode **node, Edge *toRemove)
 {
     struct EdgeNode *current = *node;
@@ -40,7 +45,8 @@ void removeEdgeFromEdgeNode(struct EdgeNode **node, Edge *toRemove)
         current = current->next;
     }
 }
-
+/*Функция добавляет ребро в граф
+data - строка ID*/
 struct Graph *addNODE(char *data, struct Graph *graph)
 {
     if (graph == NULL)
@@ -67,7 +73,7 @@ struct Graph *addNODE(char *data, struct Graph *graph)
     }
     return graph;
 }
-
+/*Функция добавляет ребро в граф, связывает вершины*/
 struct Graph *addEdge(char **data, struct Graph *graph)
 {
     if (!graph)
@@ -156,6 +162,7 @@ struct Graph *addEdge(char **data, struct Graph *graph)
     return graph;
 }
 
+/*Удалет ребро из графа, как из списка всех рёбер так и между вершинами*/
 struct Graph *removeEdge(char ID1, char ID2, struct Graph *graph)
 {
     if (!graph)
@@ -217,6 +224,7 @@ struct Graph *removeEdge(char ID1, char ID2, struct Graph *graph)
     return graph;
 }
 
+/*Удаляет вершину из графа, так же удаляются все исходящие и входящие рёбра*/
 struct Graph *removeNode(char id, struct Graph *graph)
 {
     if (!graph)
@@ -271,6 +279,11 @@ struct Graph *removeNode(char id, struct Graph *graph)
     return graph;
 }
 
+/*Обход графа в глубину
+vertex - текущая вершина для обхода
+inUsed - массив, флаг отмечает что вершина сейчас в пути обхода
+visited - массив, флаг отмечает уже посещённые вершины
+order - сохраняем вершины, их ID*/
 void DFS(Vertex *vertex, int *inUsed, int *visited, char *order, int *index)
 {
     visited[vertex->ID] = 1;
@@ -298,6 +311,7 @@ void DFS(Vertex *vertex, int *inUsed, int *visited, char *order, int *index)
     order[(*index)++] = vertex->ID;
 }
 
+/*Функция нумерует вершины графа в обратном порядке, ищет циклы*/
 void RpoNumbering(struct Graph *graph, char startID)
 {
     if (!graph)
@@ -309,7 +323,6 @@ void RpoNumbering(struct Graph *graph, char startID)
     int inUsed[256] = {0};
     char order[256];
     int index = 0;
-    //////
     Vertex *startVertex = NULL;
 
     struct VertexNode *currentNode = graph->allVertex;
@@ -321,11 +334,6 @@ void RpoNumbering(struct Graph *graph, char startID)
             break;
         }
         currentNode = currentNode->next;
-    }
-    if (startVertex == NULL)
-    {
-        printf("Start vertex not found.\n");
-        return;
     }
     DFS(startVertex, inUsed, visited, order, &index);
     currentNode = graph->allVertex;
@@ -345,6 +353,7 @@ void RpoNumbering(struct Graph *graph, char startID)
     printf("\n");
 }
 
+/*Вывод графа красивый*/
 void printGraph(struct Graph *graph)
 {
     if (!graph)
@@ -407,6 +416,7 @@ void printGraph(struct Graph *graph)
     }
 }
 
+/*Считает общее колмчество вершин в графе*/
 int countAllVertexInGraph(struct Graph *graph)
 {
     struct VertexNode *current = graph->allVertex;
@@ -419,226 +429,46 @@ int countAllVertexInGraph(struct Graph *graph)
     return count;
 }
 
-struct Graph *cloneGraph(struct Graph *orig)
+/*Освобождаем память от графа*/
+void freeGraph(struct Graph *graph)
 {
-    if (!orig)
-        return NULL;
+    if (!graph)
+        return;
 
-    // Создаем новый граф
-    struct Graph *clone = malloc(sizeof(struct Graph));
-    clone->allVertex = NULL;
-    clone->allEdge = NULL;
-
-    // Создаем маппинг оригинальных вершин на их копии
-    struct VertexNode *vNode = orig->allVertex;
-    struct VertexNode **cloneVNode = &clone->allVertex;
-
-    // Первый проход: копируем все вершины
-    while (vNode)
-    {
-        // Создаем копию вершины
-        Vertex *newVertex = makeVertex(vNode->vertex->ID);
-
-        // Добавляем вершину в список вершин клона
-        *cloneVNode = malloc(sizeof(struct VertexNode));
-        (*cloneVNode)->vertex = newVertex;
-        (*cloneVNode)->next = NULL;
-
-        // Переходим к следующей вершине
-        cloneVNode = &(*cloneVNode)->next;
-        vNode = vNode->next;
-    }
-
-    // Второй проход: копируем все ребра
-    struct EdgeNode *eNode = orig->allEdge;
-    struct EdgeNode **cloneENode = &clone->allEdge;
-
+    struct EdgeNode *eNode = graph->allEdge;
     while (eNode)
     {
-        // Находим копии вершин from и to в клоне
-        Vertex *originalFrom = eNode->edge->from;
-        Vertex *originalTo = eNode->edge->to;
-
-        Vertex *cloneFrom = NULL;
-        Vertex *cloneTo = NULL;
-
-        // Ищем соответствующие вершины в клоне
-        struct VertexNode *vNodeOrig = orig->allVertex;
-        struct VertexNode *vNodeClone = clone->allVertex;
-
-        while (vNodeOrig && vNodeClone)
-        {
-            if (vNodeOrig->vertex == originalFrom)
-            {
-                cloneFrom = vNodeClone->vertex;
-            }
-            if (vNodeOrig->vertex == originalTo)
-            {
-                cloneTo = vNodeClone->vertex;
-            }
-            vNodeOrig = vNodeOrig->next;
-            vNodeClone = vNodeClone->next;
-        }
-
-        if (cloneFrom && cloneTo)
-        {
-            // Создаем новое ребро
-            Edge *newEdge = makeEdge(cloneFrom, cloneTo, eNode->edge->weight);
-
-            // Добавляем ребро в список ребер графа
-            *cloneENode = malloc(sizeof(struct EdgeNode));
-            (*cloneENode)->edge = newEdge;
-            (*cloneENode)->next = NULL;
-            cloneENode = &(*cloneENode)->next;
-
-            // Добавляем ребро в исходящие ребра from-вершины
-            struct EdgeNode *outEdgeNode = malloc(sizeof(struct EdgeNode));
-            outEdgeNode->edge = newEdge;
-            outEdgeNode->next = NULL;
-
-            if (!cloneFrom->outEdge)
-            {
-                cloneFrom->outEdge = outEdgeNode;
-            }
-            else
-            {
-                struct EdgeNode *last = cloneFrom->outEdge;
-                while (last->next)
-                    last = last->next;
-                last->next = outEdgeNode;
-            }
-
-            // Добавляем ребро в входящие ребра to-вершины
-            struct EdgeNode *inEdgeNode = malloc(sizeof(struct EdgeNode));
-            inEdgeNode->edge = newEdge;
-            inEdgeNode->next = NULL;
-
-            if (!cloneTo->inputEdge)
-            {
-                cloneTo->inputEdge = inEdgeNode;
-            }
-            else
-            {
-                struct EdgeNode *last = cloneTo->inputEdge;
-                while (last->next)
-                    last = last->next;
-                last->next = inEdgeNode;
-            }
-        }
-
+        struct EdgeNode *temp = eNode;
         eNode = eNode->next;
+        free(temp->edge);
+        free(temp);
     }
 
-    return clone;
-}
-
-void addEdgePath(struct EdgeNode **path, Edge *edge)
-{
-    struct EdgeNode *new = malloc(sizeof(struct EdgeNode));
-    new->edge = edge;
-    new->next = *path;
-    *path = new;
-}
-
-void removeEdgePath(struct EdgeNode **path)
-{
-    if (*path)
+    struct VertexNode *vNode = graph->allVertex;
+    while (vNode)
     {
-        struct EdgeNode *top = *path;
-        *path = top->next;
-        free(top);
-    }
-}
+        struct VertexNode *temp = vNode;
+        vNode = vNode->next;
 
-struct EdgeNode *findPathDFS(Vertex *current, Vertex *target, bool *visited, struct EdgeNode **currentPath)
-{
-    if (current == target)
-    {
-        struct EdgeNode *result = NULL;
-        struct EdgeNode *tmp = *currentPath;
-
-        while (tmp)
+        struct EdgeNode *in = temp->vertex->inputEdge;
+        while (in)
         {
-            struct EdgeNode *new = malloc(sizeof(struct EdgeNode));
-            new->edge = tmp->edge;
-            new->next = result;
-            result = new;
-            tmp = tmp->next;
+            struct EdgeNode *tempIn = in;
+            in = in->next;
+            free(tempIn);
         }
-        return result;
-    }
 
-    visited[current->ID] = true;
-    struct EdgeNode *result = NULL;
-
-    for (struct EdgeNode *now = current->outEdge; now && !result; now = now->next)
-    {
-        Vertex *next = now->edge->to;
-
-        if (!visited[next->ID])
+        struct EdgeNode *out = temp->vertex->outEdge;
+        while (out)
         {
-            addEdgePath(currentPath, now->edge);
-            result = findPathDFS(next, target, visited, currentPath);
-            removeEdgePath(currentPath);
+            struct EdgeNode *tempOut = out;
+            out = out->next;
+            free(tempOut);
         }
-    }
-    visited[current->ID] = false;
-    return result;
-}
-struct EdgeNode *findPath(struct Graph *graph, Vertex *start, Vertex *end)
-{
-    if (start == end)
-        return NULL;
 
-    bool visited[256] = {false};
-    struct EdgeNode *currentPath = NULL;
-    struct EdgeNode *path = findPathDFS(start, end, visited, &currentPath);
-    // struct EdgeNode *reverse = NULL;
-    // while (path)
-    // {
-    //     struct EdgeNode *next = path->next;
-    //     path->next = reverse;
-    //     reverse = path;
-    //     path = next;
-    // }
-    return path;
-}
-void printPath(struct EdgeNode *path)
-{
-    if (!path)
-    {
-        printf("Путь не найден\n");
-        return;
+        free(temp->vertex);
+        free(temp);
     }
 
-    struct EdgeNode *current = path;
-
-    // Печатаем первую вершину
-    printf("%c", current->edge->from->ID);
-
-    while (current)
-    {
-        // Печатаем ребро и следующую вершину
-        printf("-(%d)->%c", current->edge->weight, current->edge->to->ID);
-        current = current->next;
-    }
-    printf("\n");
-}
-
-void maxFlow(struct Graph *graph, char startID, char endID)
-{
-    struct Graph *clone = cloneGraph(graph);
-    struct VertexNode *now = clone->allVertex;
-    Vertex *vertexStart = NULL;
-    Vertex *vertexEnd = NULL;
-    while (now)
-    {
-        if (now->vertex->ID == startID)
-            vertexStart = now->vertex;
-        if (now->vertex->ID == endID)
-            vertexEnd = now->vertex;
-        now = now->next;
-    }
-
-    printPath(findPath(clone, vertexStart, vertexEnd));
+    free(graph);
 }
